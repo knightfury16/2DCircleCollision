@@ -5,7 +5,7 @@ class utility{
         this.play = true;
     }
 
-    clickStop(canvas_ref)
+    static clickStop(canvas_ref)
     {
         canvas_ref.mouseClicked(() => {
             if(this.play){noLoop();this.play = false;}
@@ -18,7 +18,7 @@ class utility{
     }
 
 
-    frameCount()
+    static frameCount()
     {
         this.div = createDiv("FrameRate = ");
         this.span = createSpan("60");

@@ -20,11 +20,10 @@ const colors = [
 
 function setup() {
  
-  let cnv = createCanvas(900, 500);
+  let cnv = createCanvas(600, 500);
 
-  let canvas = new utility();
-  canvas.clickStop(cnv);
-  canvas.frameCount();
+  utility.clickStop(cnv);
+  utility.frameCount();
 
   
   //Generating 10 random circle with radius 16
