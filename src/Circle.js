@@ -1,12 +1,12 @@
 class Circle
   {
     
-    constructor(x,y,num ='', r=16, color , f = false)
+    constructor(x,y,num ='', r , color , f = false)
     {
       this.pos = createVector(x,y);
-      this.multiplier = 2;
+      this.multiplier = 0.5;
       if(f)this.multiplier = 10;
-      this.vel = p5.Vector.random2D().mult(this.multiplier);
+      this.vel = p5.Vector.random2D().mult(1);
       this.acc = createVector(0,0);
       this.r = r;
       this.num = num;
@@ -70,9 +70,11 @@ class Circle
           line(right.x,right.y,right.x,0);
         }
       
-      stroke(this.color.r,this.color.g,this.color.b);
+      stroke(255);
+      // stroke(this.color.r,this.color.g,this.color.b);
       strokeWeight(1);
-      fill(this.color.r,this.color.g,this.color.b,200);
+      fill(255,100);
+      // fill(this.color.r,this.color.g,this.color.b,200);
       ellipse(this.pos.x,this.pos.y,this.r*2);
       
       

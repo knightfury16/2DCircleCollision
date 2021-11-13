@@ -20,10 +20,15 @@ const colors = [
 
 function setup() {
  
-  createCanvas(500, 400);
+  let cnv = createCanvas(900, 500);
+
+  let canvas = new utility();
+  canvas.clickStop(cnv);
+  canvas.frameCount();
+
   
   //Generating 10 random circle with radius 16
-  generate_random_circle(20, 16);
+  generate_random_circle(100, 10);
   
   //Creating a CircleSimulation object and passing in the array of circle object.
   //This is where all the dynamics happen.
@@ -34,8 +39,11 @@ function setup() {
 
 function draw() {
   
-  background('green');
+  background(0);
 
+
+
+  // console.log(frameRate());
 
   world.handle_particle_collision(debug);
   
@@ -50,13 +58,14 @@ function draw() {
 //Function to generate random circle without overlapping.
 //Syntax generate_random_circle(number of circle, [Radius of all the circles]);
 
-function generate_random_circle(number_of_circle, radius = 0)
+function generate_random_circle(number_of_circle, radius )
 {
 
   for(let i = 0; i < number_of_circle; i++)
     {
 
-      if(radius == 0){var temp_r = ceil(random(20,35));}
+      let temp_r = radius;
+      if(radius == 0){temp_r = ceil(random(20,35));}
 
       //Creating a temp circle object to check if it overlaps with the existing circle object in the canvas.
       let cir ={
@@ -79,17 +88,8 @@ function generate_random_circle(number_of_circle, radius = 0)
             }
         }
       //If it does not overlap then add the temp circle to the circle objects
-      if(!overlap)c.push(new Circle(cir.x,cir.y,i+1,cir.r, colors[i%8],true));
+      if(!overlap)c.push(new Circle(cir.x,cir.y,i+1,cir.r, colors[i%8],false));
     }
   
 }
 
-
-//If player click on the canvas the simulation stop.Click again to play.
-function mousePressed(){
-  if(play){noLoop();play = false;}
-  else{
-    loop();
-    play = true;
-  }
-}
