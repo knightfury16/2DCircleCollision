@@ -3,14 +3,46 @@ class CircleSimulation
   
   constructor(circles)
   {
-    this.particles = circles;
+    this.particles = circles.slice();
   }
+
+  addBody(circle)
+  {
+    this.particles.push(circle);
+    // console.log(this.particles.length);
+  }
+
+
+
+  
+  handle_particle_collision_brute()
+  {
+    for(let i = 0; i < this.particles.length; i++)
+      {
+        for(let j = i + 1; j < this.particles.length; j++)
+          {
+            let this_par = this.particles[i];
+            let other_par = this.particles[j];
+            let circle_dist= dist(this_par.pos.x,this_par.pos.y,other_par.pos.x,other_par.pos.y)
+            if( circle_dist < this_par.r + other_par.r){
+            
+            this.handle_static_collision(this_par,other_par,circle_dist);
+              
+            this.get_response_velocity (this_par,other_par);
+            }
+              
+          }
+      }
+  }
+  
   
   
   handle_particle_collision(debug=false)
   {
     //Calling the find_possible_collision function to get the pair of possible collisons.
     let possible_collision = this.find_possible_collision();
+
+    if(debug){console.log("New frame");}
     
     for(let i = 0; i < possible_collision.length; i++)
       {
@@ -28,7 +60,8 @@ class CircleSimulation
         
         if( circle_dist < this_circle.r + other_circle.r)
           {
-            this.handle_static_collision(this_circle,other_circle,circle_dist);
+            let temp = this.handle_static_collision(this_circle,other_circle,circle_dist);
+            if(debug)console.log(temp);
             this.get_response_velocity (this_circle,other_circle);
           }
       }
@@ -71,13 +104,37 @@ class CircleSimulation
 //This function physically push the two circle away to its contact point then the appropiate velocity is applied by the get_response_vel() function.
   handle_static_collision(this_circle,other_circle,circle_dist)
   {
-      let overlap_dist = 0.5 * ( (this_circle.r + other_circle.r) - circle_dist);
+      let overlap_dist = ( (this_circle.r + other_circle.r) - circle_dist);
       let normal = p5.Vector.sub(this_circle.pos,other_circle.pos).normalize();
 
-      normal.setMag(overlap_dist);
+      // normal.setMag(overlap_dist);
+      // console.log(normal);
 
+      // if(this_circle.get_left().x <= 0)
+      // {
+      //   // console.log(this_circle.num + normal);
+      //   other_circle.pos.add(normal.mult(-1));
+      //   return 1;
+      // }
+      // else if(other_circle.get_right().x >= width)
+      // {
+      //   this_circle.pos.add(normal)
+      //   return 2;
+      // }
+      // else if(this_circle.pos.y + this_circle.r >= height )
+      // {
+      //   other_circle.pos.add(normal.mult(-1));
+      //   // console.log(-normal);
+      //   return 3;
+      // }
+
+      // else{
+      // // else if(other_circle.get_right().x < width || other_circle.pos.y + other_circle.r < height){
+      normal.setMag(0.5 * overlap_dist);
       this_circle.pos.add(normal);
-      other_circle.pos.add(-normal);
+      other_circle.pos.add(normal.mult(-1));
+      return 4;
+    // }
   }
   
 
