@@ -63,9 +63,6 @@ class SAP {
       let circle_dist = dist(this_circle.pos.x, this_circle.pos.y, other_circle.pos.x, other_circle.pos.y)
 
       if (circle_dist < this_circle.r + other_circle.r) {
-        let temp = this.handle_static_collision(this_circle, other_circle, circle_dist);
-        if (debug) console.log(temp);
-        this.get_response_velocity(this_circle, other_circle);
 
         //Separate the circles first
         this.handle_static_collision(this_circle, other_circle, circle_dist);
