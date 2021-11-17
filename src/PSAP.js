@@ -1,28 +1,41 @@
-class SAP {
+class PSAP {
+
     constructor(circles) {
-        this.createAxisList(circles);
         this.axisListX = [];
         this.axisListY = [];
-        this.buildList(this.circlesSortedByX, 'x');
-        this.buildList(this.circlesSortedByY, 'y');
+        this.buildList(circles.slice(), 'x');
+        this.buildList(circles.slice(), 'y');
         this.HPM = new HashPairManagement();
-        // console.log(this.axisListX);
-        // console.log(this.axisListY);
+    }
+
+    addBody(circle) {
+
+        //Inserting the point of x-axis
+        let minX = new EndPoint('x', true);
+        let maxX = new EndPoint('x', false);
+        minX.circle = maxX.circle = circle;
+        this.axisListX.push(minX, maxX);
+
+        //Inserting the point of y-axis
+        let minY = new EndPoint('y', true);
+        let maxY = new EndPoint('y', false);
+        minY.circle = maxY.circle = circle;
+        this.axisListY.push(minY, maxY);
+
     }
 
     buildList(circles, axisName) {
-        if (axisName === 'x') {
+        if (axisName == 'x') {
             for (let i = 0; i < circles.length; i++) {
-                //Do something
                 let minX = new EndPoint('x', true);
                 let maxX = new EndPoint('x', false);
                 minX.circle = maxX.circle = circles[i];
                 this.axisListX.push(minX, maxX);
             }
-        } else if (axisName === 'y') {
+
+        } else if (axisName == 'y') {
             for (let i = 0; i < circles.length; i++) {
-                //Do something
-                let minY = new EndPoint('y', true); //Because y-axis in p5 in inverted. So the up is actually min.
+                let minY = new EndPoint('y', true);
                 let maxY = new EndPoint('y', false);
                 minY.circle = maxY.circle = circles[i];
                 this.axisListY.push(minY, maxY);
@@ -30,158 +43,111 @@ class SAP {
         }
     }
 
-    createAxisList(circles) {
-        this.circlesSortedByX = circles.slice();
-        this.circlesSortedByY = circles.slice();
-    }
 
+    handle_particle_collision(debug = false) {
 
-    handle_particle_collision() {
-        this.sortAxis(this.axisListX, 'x');
-        this.sortAxis(this.axisListY, 'y');
-        // this.update_endpoints(this.axisListX, 'x');
-        // this.update_endpoints(this.axisListY, 'y');
-        // console.log(this.HPM.result().length);
+        this.sortAxis(this.axisListX);
+        this.sortAxis(this.axisListY);
 
         let possible_collision = this.HPM.result();
 
-        for (let i = 0; i < possible_collision.length; i++) {
+        for (key in possible_collision) {
+
             //destructuring the pair
-            let this_circle = possible_collision[i][0];
-            let other_circle = possible_collision[i][1];
+            let this_circle = possible_collision[key].obj1;
+            let other_circle = possible_collision[key].obj2;
 
             if (debug) {
                 console.log(this_circle.num + " might collide with " + other_circle.num);
             }
+
+            //Variable to check how many call it's made. call is global variable.
             call++;
+
             //Distance between the reported pairs.
             let circle_dist = dist(this_circle.pos.x, this_circle.pos.y, other_circle.pos.x, other_circle.pos.y)
 
             if (circle_dist < this_circle.r + other_circle.r) {
-                let temp = this.handle_static_collision(this_circle, other_circle, circle_dist);
-                if (debug) console.log(temp);
+
+
+                //Separate the circles first
+                this.handle_static_collision(this_circle, other_circle, circle_dist);
+
+                //Apply the response velocity after collision.
                 this.get_response_velocity(this_circle, other_circle);
             }
         }
+
     }
 
-    update_endpoints(axis_list, axisName) {
-        if (axisName == 'x') {
-            for (let endpoint of axis_list) {
-                if (endpoint.isMin) {
-                    endpoint.value = endpoint.circle.get_left().x;
-                } else {
-                    endpoint.value = endpoint.circle.get_right().x;
-                }
-            }
-        } else if (axisName == 'y') {
-            for (let endpoint of axis_list) {
-                if (endpoint.isMin) {
-                    endpoint.value = endpoint.circle.get_up().y; //p5 y-asix is inverted.
-                } else {
-                    endpoint.value = endpoint.circle.get_down().y;
-                }
-            }
-        }
-    }
 
-    //Main  loop
-    sortAxis(axis, axisName) {
+    //Making the pair while sorting(insertion sort),thats why its called persistent SAP
+    sortAxis(axisList) {
 
+        for (let i = 1; i < axisList.length; i++) {
 
-        // console.log("Entering sortAxis" + axisName);
-
-        for (let i = 1; i < axis.length; i++) {
-            //Do something
-            let keyElement = axis[i];
+            let keyElement = axisList[i];
             let key = keyElement.get_value();
 
             let j = i - 1;
 
-            while (j >= 0 && axis[j].get_value() > key) {
-                let swapper = axis[j];
+            while (j >= 0 && axisList[j].get_value() > key) {
+
+                let swapper = axisList[j];
 
                 if (keyElement.isMin && !swapper.isMin) {
-                    // console.log(keyElement.circle.num,swapper.circle.num);
-                    let overlap = this.checkOverlap(keyElement.circle, swapper.circle);
-                    if (overlap) {
+
+                    //Instead of raising a flag that in this axis they overlaped just check if they overlap in all axis.
+                    //Otherwise the space complexity becomes O(n^2).If they overlap insert the pair.
+                    if (this.checkOverlap(keyElement.circle, swapper.circle)) {
                         this.HPM.addPair(keyElement.circle, swapper.circle);
-                        // console.log(keyElement.circle.num + " overlapping with " + swapper.circle.num);
                     }
                 }
-
+                //If in one axis they are not overlaping there is no way they will collide. So just remove pair.
+                //In fact just for removing we are sorting the both axis list. Because we are checking if they overlap in all
+                //axis if they overlap in just one axis, so there is no need for sorting through other axis.So just
+                // for removing pairs we are sorting all the axis list.
                 if (!keyElement.isMin && swapper.isMin) {
-                    //remove
                     this.HPM.removePair(keyElement.circle, swapper.circle);
-                    // console.log(keyElement.circle.num + " remove overlap with " + swapper.circle.num);
                 }
 
-                axis[j + 1] = swapper;
+                axisList[j + 1] = swapper;
                 j -= 1;
 
             }
 
-            axis[j + 1] = keyElement;
+
+            axisList[j + 1] = keyElement;
         }
 
-
-        // console.log("Exit");
-    }
-
-    checkOverlap(this_cir, other_circle) {
-        // if (this_cir.get_right().x > other_circle.get_left().x) {
-        //     console.log("this_cir right x = " + this_cir.get_right().x + " other_circle left x = " + other_circle.get_left().x);
-        //     if (this_cir.get_down().y > other_circle.get_up().y) {
-        //         console.log("this_cir down y = " + this_cir.get_down().y + " other_circle up y = " + other_circle.get_up().y);
-        //         if (this_cir.get_up().y < other_circle.get_down().y) {
-        //             console.log("this_cir up y = " + this_cir.get_up().y + " other_circle down y = " + other_circle.get_down().y);
-        //             return true;
-        //         }
-
-        //     }
-        // }
-        // console.log("this_cir.get_right().x < other_circle.get_left().x" + this_cir.get_right().x, other_circle.get_left().x);
-        return (this_cir.get_left().x < other_circle.get_right().x && this_cir.get_right().x > other_circle.get_left().x && this_cir.get_down().y > other_circle.get_up().y && this_cir.get_up().y < other_circle.get_down().y);
     }
 
 
+    checkOverlap(this_circle, other_circle) {
+        return (
+            this_circle.get_left().x <= other_circle.get_right().x &&
+            this_circle.get_right().x >= other_circle.get_left().x &&
+            this_circle.get_down().y >= other_circle.get_up().y &&
+            this_circle.get_up().y <= other_circle.get_down().y
+        )
+    }
+
+
+    //By the time program report the collision few frames have passed and by that time circles overlapped a bit.
+    //This function physically push the two circle away to its contact point then the appropiate velocity is applied by the get_response_vel() function.
     handle_static_collision(this_circle, other_circle, circle_dist) {
+
         let overlap_dist = ((this_circle.r + other_circle.r) - circle_dist);
         let normal = p5.Vector.sub(this_circle.pos, other_circle.pos).normalize();
 
-        // normal.setMag(overlap_dist);
-        // console.log(normal);
-
-        // if(this_circle.get_left().x <= 0)
-        // {
-        //   // console.log(this_circle.num + normal);
-        //   other_circle.pos.add(normal.mult(-1));
-        //   return 1;
-        // }
-        // else if(other_circle.get_right().x >= width)
-        // {
-        //   this_circle.pos.add(normal)
-        //   return 2;
-        // }
-        // else if(this_circle.pos.y + this_circle.r >= height )
-        // {
-        //   other_circle.pos.add(normal.mult(-1));
-        //   // console.log(-normal);
-        //   return 3;
-        // }
-
-        // else{
-        // // else if(other_circle.get_right().x < width || other_circle.pos.y + other_circle.r < height){
+        //Multiplying with 0.5 cause will move the both circle half the overlapping distance.
         normal.setMag(0.5 * overlap_dist);
         this_circle.pos.add(normal);
         other_circle.pos.add(normal.mult(-1));
-        return 4;
-        // }
     }
 
 
     //Function to calculate velocity after collision.
-
     get_response_velocity(this_circle, other_circle) {
 
         let normal = p5.Vector.sub(this_circle.pos, other_circle.pos).normalize();
@@ -237,7 +203,6 @@ class SAP {
 class EndPoint {
     constructor(axis, isMin) {
         this.circle = null;
-        // this.value = value;
         this.isMin = isMin;
         this.axis = axis;
     }
@@ -247,7 +212,7 @@ class EndPoint {
             if (this.axis == 'x') {
                 return this.circle.get_left().x;
             } else {
-                return this.circle.get_up().y;
+                return this.circle.get_up().y; //Because y-axis in p5 in inverted. So the up is actually min.
             }
         } else {
             if (this.axis == 'x') {

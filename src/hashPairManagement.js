@@ -20,26 +20,8 @@ class HashPairManagement {
     }
 
 
-    // let b = {
-    //     1: {
-    //         obj1: "Suhaib",
-    //         obj2: "ahmed"
-    //     },
-
-    //     1493: {
-    //         obj1: "Tahiya",
-    //         obj2: "Khatum"
-    //     }
-    // }
-
-
     result() {
-        let possible_collision = [];
 
-        for (key in this.pairs) {
-            possible_collision.push([this.pairs[key].obj1, this.pairs[key].obj2]);
-        }
-
-        return possible_collision;
+        return this.pairs;
     }
 }

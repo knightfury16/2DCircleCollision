@@ -1,27 +1,34 @@
-class CircleSimulation {
+class SAP {
 
   constructor(circles) {
+    //Making a copy of the circles.
     this.particles = circles.slice();
   }
 
+
   addBody(circle) {
     this.particles.push(circle);
-    // console.log(this.particles.length);
   }
 
 
-
+  //Good old brute force for testing purpose.
   handle_particle_collision_brute() {
     for (let i = 0; i < this.particles.length; i++) {
       for (let j = i + 1; j < this.particles.length; j++) {
+
+        //Variable to check how many call it's made. call is global variable.
         call++;
+
         let this_par = this.particles[i];
         let other_par = this.particles[j];
+
         let circle_dist = dist(this_par.pos.x, this_par.pos.y, other_par.pos.x, other_par.pos.y)
         if (circle_dist < this_par.r + other_par.r) {
 
+          //Separate the circles first
           this.handle_static_collision(this_par, other_par, circle_dist);
 
+          //Apply the response velocity after collision.
           this.get_response_velocity(this_par, other_par);
         }
 
@@ -32,6 +39,7 @@ class CircleSimulation {
 
 
   handle_particle_collision(debug = false) {
+
     //Calling the find_possible_collision function to get the pair of possible collisons.
     let possible_collision = this.find_possible_collision();
 
@@ -47,6 +55,8 @@ class CircleSimulation {
       if (debug) {
         console.log(this_circle.num + " might collide with " + other_circle.num);
       }
+
+      //Variable to check how many call it's made. call is global variable.
       call++;
 
       //Distance between the reported pairs.
@@ -56,6 +66,13 @@ class CircleSimulation {
         let temp = this.handle_static_collision(this_circle, other_circle, circle_dist);
         if (debug) console.log(temp);
         this.get_response_velocity(this_circle, other_circle);
+
+        //Separate the circles first
+        this.handle_static_collision(this_circle, other_circle, circle_dist);
+
+        //Apply the response velocity after collision.
+        this.get_response_velocity(this_circle, other_circle);
+
       }
     }
   }
@@ -74,16 +91,22 @@ class CircleSimulation {
 
 
     for (let i = 0; i < axis_list.length; i++) {
+
       for (let j = 0; j < active_list.length; j++) {
+
         if (axis_list[i].get_left().x > active_list[j].get_right().x) {
+
           active_list.splice(j, 1);
           j--;
+
         } else {
           possible_collision.push([active_list[j], axis_list[i]]);
         }
       }
+
       active_list.push(axis_list[i]);
     }
+
     return possible_collision;
   }
 
@@ -94,39 +117,15 @@ class CircleSimulation {
     let overlap_dist = ((this_circle.r + other_circle.r) - circle_dist);
     let normal = p5.Vector.sub(this_circle.pos, other_circle.pos).normalize();
 
-    // normal.setMag(overlap_dist);
-    // console.log(normal);
-
-    // if(this_circle.get_left().x <= 0)
-    // {
-    //   // console.log(this_circle.num + normal);
-    //   other_circle.pos.add(normal.mult(-1));
-    //   return 1;
-    // }
-    // else if(other_circle.get_right().x >= width)
-    // {
-    //   this_circle.pos.add(normal)
-    //   return 2;
-    // }
-    // else if(this_circle.pos.y + this_circle.r >= height )
-    // {
-    //   other_circle.pos.add(normal.mult(-1));
-    //   // console.log(-normal);
-    //   return 3;
-    // }
-
-    // else{
-    // // else if(other_circle.get_right().x < width || other_circle.pos.y + other_circle.r < height){
+    //Multiplying with 0.5 cause will move the both circle half the overlapping distance.
     normal.setMag(0.5 * overlap_dist);
     this_circle.pos.add(normal);
     other_circle.pos.add(normal.mult(-1));
-    return 4;
-    // }
+
   }
 
 
   //Function to calculate velocity after collision.
-
   get_response_velocity(this_circle, other_circle) {
 
     let normal = p5.Vector.sub(this_circle.pos, other_circle.pos).normalize();
@@ -146,7 +145,6 @@ class CircleSimulation {
     //step 4 find tangential velocity after collision
 
     let v1t_a_ = v1t;
-
     let v2t_a_ = v2t;
 
     //step 5 find new normal velocity

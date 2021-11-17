@@ -1,14 +1,11 @@
 class Circle {
 
-  // constructor(x, y, num = '', v = 0, r = 20, color, f = false) {
-  constructor(x, y, num = '', r, color, f = false) {
+
+  constructor(x, y, num, r, color, f = false) {
     this.pos = createVector(x, y);
     this.multiplier = 0.7;
-    if (f) this.multiplier = 5;
-    // this.vel = v;
-    // this.vel = createVector(0, 0);
-    // this.vel = p5.Vector.random2D().mult(2);
-    this.vel = p5.Vector.random2D().mult(this.multiplier);
+    this.vel = createVector(0, 0);
+    // this.vel = p5.Vector.random2D().mult(this.multiplier);
     this.acc = createVector(0, 0);
     this.r = r;
     this.num = num;
@@ -19,7 +16,8 @@ class Circle {
 
 
   applyForce(force) {
-    // let f = p5.Vector.div(force,this.mass);
+
+    // let f = p5.Vector.div(force,this.mass); //Commenting it out cause can't take mass into account now.
     this.acc.add(force);
   }
 
@@ -36,6 +34,8 @@ class Circle {
 
   }
 
+
+  // Apply friction based on mass.
   applyFriction() {
     //Direction of friction
     let friction = this.vel.copy();
@@ -51,6 +51,7 @@ class Circle {
 
 
 
+  //Boundaries
   edges() {
     if (this.pos.y >= height - this.r) {
       this.pos.y = height - this.r;
@@ -79,10 +80,13 @@ class Circle {
     return createVector(this.pos.x + this.r, this.pos.y);
   }
 
+
+  //For getting the down most point of the circle. Take into accounting that this down is actually up cause p5 y-asix is inverted.
   get_down() {
     return createVector(this.pos.x, this.pos.y + this.r);
   }
 
+  //For getting the top most point of the circle.
   get_up() {
     return createVector(this.pos.x, this.pos.y - this.r);
   }
@@ -102,6 +106,8 @@ class Circle {
       line(right.x, right.y, right.x, 0);
     }
 
+
+    //Not taking the color option into account now.But keeping the option for now.
     stroke(255);
     // stroke(this.color.r,this.color.g,this.color.b);
     strokeWeight(1);
